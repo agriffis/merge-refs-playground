@@ -6,9 +6,9 @@ import useReflector from './agriffis/useReflector'
 import {useRefs} from './ZachHaber/useRefs'
 
 describe.each([
-  ['useMergedRefs', useMergedRefs],
-  ['useReflector', useReflector],
-  ['useRefs', refs => useRefs(undefined, refs)],
+  ['agriffis/useMergedRefs', useMergedRefs],
+  ['agriffis/useReflector', useReflector],
+  ['ZachHaber/useRefs', refs => useRefs(undefined, refs)],
 ])('%s', (_, useX) => {
   test('works with zero refs', async () => {
     const TestMe = () => {
