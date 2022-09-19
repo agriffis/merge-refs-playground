@@ -1,6 +1,6 @@
 import {useCallback} from 'react'
 
-export const useMergedRefs = refs =>
+export const useMergedRefs = (refs, {maxBeforeStrictError = 10} = {}) =>
   useCallback(
     current => {
       refs.forEach(ref => {
@@ -12,5 +12,8 @@ export const useMergedRefs = refs =>
       })
     },
     // stupid trick to avoid strict error from React
-    [refs.length, ...refs, ...new Array(10 - refs.length).fill()],
+    Array(maxBeforeStrictError + 1).splice(0, refs.length, [
+      refs.length, // because React only compares to the shorter length
+      ...refs,
+    ]),
   )
