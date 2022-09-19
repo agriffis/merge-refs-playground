@@ -3,8 +3,8 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {useLayoutEffect, useRef, useState} from 'react'
 import {useMergedRefs} from './agriffis/useMergedRefs'
 import useReflector from './agriffis/useReflector'
+import {useMergeRefs} from './use-callback-ref'
 import {useRefs} from './ZachHaber/useRefs'
-import {useMergeRefs} from './use-callback-ref';
 
 describe.each([
   ['agriffis/useMergedRefs', useMergedRefs],
@@ -207,11 +207,13 @@ describe.each([
   test('updates before layout effects', async () => {
     let current
     const TestMe = () => {
+      const [rerender, setRerender] = useState(false)
       const oneRef = useRef()
       useLayoutEffect(() => {
-        current = oneRef.current;
-      }, [])
-      const mergedRef = useX([oneRef])
+        current = oneRef.current
+        setRerender(true)
+      })
+      const mergedRef = useX(rerender ? [oneRef] : [])
       return <div ref={mergedRef} data-testid="foo" />
     }
     render(<TestMe />)
