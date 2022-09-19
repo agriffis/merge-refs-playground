@@ -1,19 +1,16 @@
 import {useCallback} from 'react'
+import {useDynamicDeps} from './useDynamicDeps'
 
-export const useMergedRefs = (refs, {maxBeforeStrictError = 10} = {}) =>
+const applyValue = current => ref => {
+  if (typeof ref === 'function') {
+    ref(current)
+  } else if (ref && !Object.isFrozen(ref)) {
+    ref.current = current
+  }
+}
+
+export const useMergedRefs = refs =>
   useCallback(
-    current => {
-      refs.forEach(ref => {
-        if (typeof ref === 'function') {
-          ref(current)
-        } else if (ref && !Object.isFrozen(ref)) {
-          ref.current = current
-        }
-      })
-    },
-    // stupid trick to avoid strict error from React
-    Array(maxBeforeStrictError + 1).splice(0, refs.length, [
-      refs.length, // because React only compares to the shorter length
-      ...refs,
-    ]),
+    current => refs.forEach(applyValue(current)),
+    useDynamicDeps(refs),
   )
