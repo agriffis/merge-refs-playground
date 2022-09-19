@@ -3,11 +3,13 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {useLayoutEffect, useRef, useState} from 'react'
 import {useMergedRefs} from './agriffis/useMergedRefs'
 import useReflector from './agriffis/useReflector'
+import {useMergeRefs} from './use-callback-ref'
 import {useRefs} from './ZachHaber/useRefs'
 
 describe.each([
   ['agriffis/useMergedRefs', useMergedRefs],
   ['agriffis/useReflector', useReflector],
+  ['use-callback-ref', useMergeRefs],
   ['ZachHaber/useRefs', refs => useRefs(undefined, refs)],
 ])('%s', (_, useX) => {
   test('works with zero refs', async () => {
