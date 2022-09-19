@@ -4,10 +4,12 @@ import {useLayoutEffect, useRef, useState} from 'react'
 import {useMergedRefs} from './agriffis/useMergedRefs'
 import useReflector from './agriffis/useReflector'
 import {useRefs} from './ZachHaber/useRefs'
+import {useMergeRefs} from './use-callback-ref';
 
 describe.each([
   ['agriffis/useMergedRefs', useMergedRefs],
   ['agriffis/useReflector', useReflector],
+  ['use-callback-ref', useMergeRefs],
   ['ZachHaber/useRefs', refs => useRefs(undefined, refs)],
 ])('%s', (_, useX) => {
   test('works with zero refs', async () => {
@@ -205,13 +207,11 @@ describe.each([
   test('updates before layout effects', async () => {
     let current
     const TestMe = () => {
-      const [rerender, setRerender] = useState(false)
       const oneRef = useRef()
       useLayoutEffect(() => {
-        current = oneRef.current
-        setRerender(true)
-      })
-      const mergedRef = useX(rerender ? [oneRef] : [])
+        current = oneRef.current;
+      }, [])
+      const mergedRef = useX([oneRef])
       return <div ref={mergedRef} data-testid="foo" />
     }
     render(<TestMe />)
