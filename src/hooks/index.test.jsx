@@ -1,13 +1,15 @@
 import '@testing-library/jest-dom'
 import {fireEvent, render, screen, waitFor} from '@testing-library/react'
-import {useLayoutEffect, useRef, useState} from 'react'
+import {useEffect, useLayoutEffect, useRef, useState} from 'react'
 import {useMergedRefs} from './agriffis/useMergedRefs'
+import {useMergedRefs2} from './agriffis/useMergedRefs2'
 import useReflector from './agriffis/useReflector'
 import {useMergeRefs} from './use-callback-ref'
 import {useRefs} from './ZachHaber/useRefs'
 
 describe.each([
   ['agriffis/useMergedRefs', useMergedRefs],
+  ['agriffis/useMergedRefs2', useMergedRefs2],
   ['agriffis/useReflector', useReflector],
   ['use-callback-ref', useMergeRefs],
   ['ZachHaber/useRefs', refs => useRefs(undefined, refs)],
@@ -203,14 +205,31 @@ describe.each([
     expect(mockCallbackRef.mock.calls).toEqual([[div]])
   })
 
+  // https://github.com/gregberge/react-merge-refs/issues/5#issuecomment-736587365
+  test('returns a stable ref over sub-ref updates', async () => {
+    const seen = new Set()
+    const TestMe = () => {
+      const [rerender, setRerender] = useState(false)
+      const oneRef = useRef()
+      const twoRef = useRef()
+      const mergedRef = useX(!rerender ? [oneRef] : [oneRef, twoRef])
+      seen.add(mergedRef)
+      useEffect(() => setRerender(true), [])
+      return <div>{rerender && <div ref={mergedRef} data-testid="foo" />}</div>
+    }
+    render(<TestMe />)
+    await screen.findByTestId('foo')
+    expect(seen.size).toEqual(1)
+  })
+
   // https://github.com/gregberge/react-merge-refs/issues/5#issuecomment-736417057
   test('updates before layout effects', async () => {
-    let current
+    let seen = []
     const TestMe = () => {
       const [rerender, setRerender] = useState(false)
       const oneRef = useRef()
       useLayoutEffect(() => {
-        current = oneRef.current
+        seen.push(oneRef.current)
         setRerender(true)
       })
       const mergedRef = useX(rerender ? [oneRef] : [])
@@ -218,6 +237,33 @@ describe.each([
     }
     render(<TestMe />)
     const div = await screen.findByTestId('foo')
-    expect(current).toBe(div)
+    await waitFor(() => expect(seen).toContain(div))
+    // Failure here is [undefined, undefined]
+    expect(seen).toEqual([undefined, div])
+  })
+
+  test('returns a gettable ref', async () => {
+    let oneRef, mergedRef
+    const TestMe = () => {
+      oneRef = useRef()
+      mergedRef = useX([oneRef])
+      return <div ref={mergedRef} />
+    }
+    render(<TestMe />)
+    expect(mergedRef.current).toBe(oneRef.current)
+  })
+
+  test('returns a settable ref', async () => {
+    let oneRef, mergedRef
+    const TestMe = () => {
+      oneRef = useRef()
+      mergedRef = useX([oneRef])
+      useLayoutEffect(() => {
+        mergedRef.current = 42
+      }, [])
+      return <div />
+    }
+    render(<TestMe />)
+    expect(oneRef.current).toBe(42)
   })
 })
