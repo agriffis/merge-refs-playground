@@ -6,6 +6,7 @@ import {useMergedRefs2} from './agriffis/useMergedRefs2'
 import useReflector from './agriffis/useReflector'
 import {useMergeRefs} from './use-callback-ref'
 import {useRefs} from './ZachHaber/useRefs'
+import {useRefsSafe} from './ZachHaber/useRefsSafe'
 
 describe.each([
   ['agriffis/useMergedRefs', useMergedRefs],
@@ -13,6 +14,7 @@ describe.each([
   ['agriffis/useReflector', useReflector],
   ['use-callback-ref', useMergeRefs],
   ['ZachHaber/useRefs', refs => useRefs(undefined, refs)],
+  ['ZachHaber/useRefsSafe', refs => useRefsSafe(undefined, refs)],
 ])('%s', (_, useX) => {
   test('works with zero refs', async () => {
     const TestMe = () => {
